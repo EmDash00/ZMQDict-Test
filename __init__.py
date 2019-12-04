@@ -36,7 +36,7 @@ class Context:
         async def poll():
             while self._open:
                 sockets = dict(await self.poller.poll())
-                print(sockets)
+                print("POLLIN on:", sockets)
                 for socket in sockets:
                     await self._callbacks[socket]()
 
@@ -119,7 +119,7 @@ class ZMQDictServer:
                 self._sync_port,
                 codecs.encode(pickle.dumps(self._dict), "base64").decode()))
 
-            print("INIT")
+            print("SIGINIT recieved from client")
         else:
             # All other requests are regular requests
             await self.publish(*self._parse_request(request))
@@ -183,7 +183,7 @@ class ZMQDictClient:
 
         self._requester.send_string("INIT")
         format_str = await self._requester.recv_string()
-        print("INIT RECIEVED:", format_str)
+        print("SIGINIT RESPONSE:", format_str)
 
         split_request = format_str.split(',')
 
@@ -192,8 +192,6 @@ class ZMQDictClient:
 
         self._sychronizer.connect("tcp://{}:{}".format(
             socket.gethostbyname(self.ip), split_request[0]))
-
-
 
     def close(self):
         pass
@@ -239,8 +237,6 @@ class ZMQDictClient:
         return (split_request[0],
                 pickle.loads(
                     codecs.decode(split_request[1].encode(), 'base64')))
-
-
 
     def close(self):
         if (self.strict):
